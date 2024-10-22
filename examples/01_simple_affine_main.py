@@ -15,10 +15,13 @@ batch_size = 30
 hidden_size = 50
 lr = 1.0
 
-train_set = dezero.datasets.Spiral(train=True)
-test_set = dezero.datasets.Spiral(train=False)
+# データの読み込み
+train_set = dezero.datasets.MNIST(train=True)
+test_set = dezero.datasets.MNIST(train=False)
 train_loader = DataLoader(train_set, batch_size)
 test_loader = DataLoader(test_set, batch_size, shuffle=False)
+
+#network = TwoLayerNet(input_size=784, hidden_size=50, output_size=10)
 
 class TwoLayerNet(Model):
     def __init__(self, hidden_size, out_size):
@@ -61,7 +64,7 @@ predict_cls = np.argmax(score.data, axis=1)
 Z = predict_cls.reshape(xx.shape)
 plt.contourf(xx, yy, Z)
 
-N, CLS_NUM = 100, 3
+N, CLS_NUM = 100, 10
 markers = ['o', 'x', '^']
 colors = ['orange', 'blue', 'green']
 for i in range(len(x)):
