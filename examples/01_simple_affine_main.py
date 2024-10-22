@@ -40,34 +40,32 @@ model = TwoLayerNet(hidden_size, 10)
 optimizer = optimizers.SGD(lr).setup(model)
 
 for epoch in range(max_epoch):
+    sum_loss, sum_acc = 0, 0
     for x, t in train_loader:
         y = model(x)
         loss = F.softmax_cross_entropy(y, t)
+        acc = F.accuracy(y, t)
         model.cleargrads()
         loss.backward()
         optimizer.update()
-    if epoch % 10 == 0:
-        print('loss:', loss.data)
+    #if epoch % 10 == 0:
+    #    print('loss:', loss.data)
 
-# Plot
-x = np.array([example[0] for example in train_set])
-t = np.array([example[1] for example in train_set])
-h = 0.001
-x_min, x_max = x[:, 0].min() - .1, x[:, 0].max() + .1
-y_min, y_max = x[:, 1].min() - .1, x[:, 1].max() + .1
-xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
-X = np.c_[xx.ravel(), yy.ravel()]
+        sum_loss += float(loss.data) * len(t)
+        sum_acc += float(acc.data) * len(t)
 
-with dezero.test_mode():
-    score = model(X)
-predict_cls = np.argmax(score.data, axis=1)
-Z = predict_cls.reshape(xx.shape)
-plt.contourf(xx, yy, Z)
+    print('epoch: {}'.format(epoch+1))
+    print('train loss: {}, accuracy: {}'.format(
+        sum_loss / len(train_set), sum_acc / len(train_set)))
 
-N, CLS_NUM = 100, 10
-markers = ['o', 'x', '^']
-colors = ['orange', 'blue', 'green']
-for i in range(len(x)):
-    c = t[i]
-    plt.scatter(x[i][0], x[i][1],s=40,  marker=markers[c], c=colors[c])
-plt.show()
+    sum_loss, sum_acc = 0, 0
+    with dezero.no_grad():
+        for x, t in test_loader:
+            y = model(x)
+            loss = F.softmax_cross_entropy(y, t)
+            acc = F.accuracy(y, t)
+            sum_loss += float(loss.data) * len(t)
+            sum_acc += float(acc.data) * len(t)
+
+    print('test loss: {}, accuracy: {}'.format(
+        sum_loss / len(test_set), sum_acc / len(test_set)))
