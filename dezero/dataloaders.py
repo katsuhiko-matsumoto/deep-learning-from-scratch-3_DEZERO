@@ -9,7 +9,7 @@ from dezero import cuda
 
 
 class DataLoader:
-    def __init__(self, dataset, batch_size, shuffle=True, gpu=False):
+    def __init__(self, dataset, batch_size, shuffle=True ,gpu=False):
         self.dataset = dataset
         self.batch_size = batch_size
         self.shuffle = shuffle
@@ -43,6 +43,7 @@ class DataLoader:
         t = xp.array([example[1] for example in batch])
 
         self.iteration += 1
+
         return x, t
 
     def next(self):

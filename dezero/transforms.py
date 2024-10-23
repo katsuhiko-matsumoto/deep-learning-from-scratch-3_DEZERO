@@ -136,7 +136,9 @@ class Flatten:
     """Flatten a NumPy array.
     """
     def __call__(self, array):
+        print('##flatten!!!!!!')
         return array.flatten()
+        #return array
 
 
 class AsType:
