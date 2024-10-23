@@ -12,7 +12,7 @@ from dezero import DataLoader
 
 max_epoch = 100
 batch_size = 30
-hidden_size = 50
+hidden_size = 10
 lr = 1.0
 
 train_set = dezero.datasets.Spiral(train=True)
@@ -33,7 +33,7 @@ class TwoLayerNet(Model):
         return y
 
 
-model = TwoLayerNet(hidden_size, 10)
+model = TwoLayerNet(hidden_size, 3)
 optimizer = optimizers.SGD(lr).setup(model)
 
 for epoch in range(max_epoch):
