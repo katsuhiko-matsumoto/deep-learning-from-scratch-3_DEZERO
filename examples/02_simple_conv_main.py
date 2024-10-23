@@ -24,9 +24,10 @@ test_loader = DataLoader(test_set, batch_size, shuffle=False)
 class SimbleConvNet(Model):
     def __init__(self, pretrained=False):
         super().__init__()
-        self.conv1_1 = L.Conv2d(1, kernel_size=3, stride=1, pad=0)
+        self.conv1_1 = L.Conv2d(1, kernel_size=5, stride=1, pad=0)
         self.linear1 = L.Linear(100)
         self.linear2 = L.Linear(10)
+
     def forward(self, x):
         x = F.relu(self.conv1_1(x))
         x = F.pooling(x, 2, 2)
