@@ -68,6 +68,8 @@ class CBOW(Model):
             layer.backward(dout)
         return None
 
+if dezero.cuda.gpu_enable:
+    model.to_gpu()
 
 # モデルなどの生成
 model = CBOW(vocab_size, hidden_size, window_size, corpus)
