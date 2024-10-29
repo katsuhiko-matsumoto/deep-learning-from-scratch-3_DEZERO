@@ -72,7 +72,7 @@ class CBOW(Model):
 # モデルなどの生成
 model = CBOW(vocab_size, hidden_size, window_size, corpus)
 # model = SkipGram(vocab_size, hidden_size, window_size, corpus)
-optimizer = optimizers.Adam(lr).setup(model)
+optimizer = optimizers.Adam(t=0.9).setup(model)
 
 trainer = trainer.Trainer2(model, optimizer)
 
