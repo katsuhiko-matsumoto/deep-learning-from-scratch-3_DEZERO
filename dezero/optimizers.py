@@ -15,16 +15,6 @@ class Optimizer:
         self.target = target
         return self
 
-    def update2(self):
-        #print('list:',self.target.params)
-        params = [p for p in self.target.params if p.grads is None]
-
-        for f in self.hooks:
-            f(params)
-
-        for param in params:
-            self.update_one(param)
-
     def update(self):
         params = [p for p in self.target.params() if p.grad is not None]
 
@@ -169,9 +159,9 @@ class AdaDelta(Optimizer):
 
 
 class Adam(Optimizer):
-    def __init__(self, alpha=0.001, beta1=0.9, beta2=0.999, eps=1e-8):
+    def __init__(self, alpha=0.001, beta1=0.9, beta2=0.999, eps=1e-8, t=0):
         super().__init__()
-        self.t = 0.9
+        self.t = t
         self.alpha = alpha
         self.beta1 = beta1
         self.beta2 = beta2
