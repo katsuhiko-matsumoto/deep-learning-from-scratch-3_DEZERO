@@ -488,6 +488,17 @@ def sigmoid_cross_entropy(x, t):
     y = -1 * sum(tlog_p) / N
     return y
 
+def cross_entropy_error(y, t):
+    if y.ndim == 1:
+        t = t.reshape(1, t.size)
+        y = y.reshape(1, y.size)
+
+    # 教師データがone-hot-vectorの場合、正解ラベルのインデックスに変換
+    if t.size == y.size:
+        t = t.argmax(axis=1)
+
+    batch_size = y.shape[0]
+    return -np.sum(np.log(y[np.arange(batch_size), t] + 1e-7)) / batch_size
 
 def binary_cross_entropy(p, t):
     if p.ndim != t.ndim:
@@ -661,6 +672,30 @@ class Clip(Function):
 def clip(x, x_min, x_max):
     return Clip(x_min, x_max)(x)
 
+# =============================================================================
+# cbow
+# =============================================================================
+
+class SigmoidWithLoss:
+    def __init__(self):
+        self.params, self.grads = [], []
+        self.loss = None
+        self.y = None  # sigmoidの出力
+        self.t = None  # 教師データ
+
+    def forward(self, x, t):
+        self.t = t
+        self.y = 1 / (1 + np.exp(-x))
+
+        self.loss = cross_entropy_error(np.c_[1 - self.y, self.y], self.t)
+
+        return self.loss
+
+    def backward(self, dout=1):
+        batch_size = self.t.shape[0]
+
+        dx = (self.y - self.t) * dout / batch_size
+        return dx
 # =============================================================================
 # conv2d / col2im / im2col / basic_math
 # =============================================================================

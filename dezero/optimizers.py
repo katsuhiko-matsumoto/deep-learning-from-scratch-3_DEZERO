@@ -1,5 +1,6 @@
 import math
 from dezero import cuda, Parameter
+import numpy as np
 
 
 # =============================================================================
@@ -13,6 +14,16 @@ class Optimizer:
     def setup(self, target):
         self.target = target
         return self
+
+    def update2(self):
+        #print('list:',self.target.params)
+        params = [p for p in self.target.params if p.grads is None]
+
+        for f in self.hooks:
+            f(params)
+
+        for param in params:
+            self.update_one(param)
 
     def update(self):
         params = [p for p in self.target.params() if p.grad is not None]
@@ -160,23 +171,59 @@ class AdaDelta(Optimizer):
 class Adam(Optimizer):
     def __init__(self, alpha=0.001, beta1=0.9, beta2=0.999, eps=1e-8):
         super().__init__()
-        self.t = 0
+        self.t = 0.9
         self.alpha = alpha
         self.beta1 = beta1
         self.beta2 = beta2
         self.eps = eps
         self.ms = {}
         self.vs = {}
+        self.iter = 0
 
     def update(self, *args, **kwargs):
         self.t += 1
+        #print('args:',args)
+        #print('kwargs:',kwargs)
         super().update(*args, **kwargs)
 
     @property
     def lr(self):
         fix1 = 1. - math.pow(self.beta1, self.t)
         fix2 = 1. - math.pow(self.beta2, self.t)
+        #print('fix1:',fix1)
+        #print('fix2:',fix2)
         return self.alpha * math.sqrt(fix2) / fix1
+
+    def update_one2(self, params, grads):
+        #print('###ms:',self.ms)
+        if len(self.ms) == 0:
+            #print('##ms is none!!')
+            self.ms, self.vs = {}, {}
+            cnt = 0
+            for  val in params:
+                self.ms[str(cnt)] = np.zeros_like(val)
+                print('zerolike:::::',np.zeros_like(val))
+                self.vs[str(cnt)] = np.zeros_like(val)
+                cnt += 1
+        self.iter += 1
+        lr_t  = self.lr * np.sqrt(1.0 - self.beta2**self.iter) / (1.0 - self.beta1**self.iter)
+        cnt = 0
+        #print('param:',len(params))
+        #print('grad:',len(grads))
+        #print('ms:',len(self.ms))
+        #print('vs:',len(self.vs))
+        for param in params:
+            #self.m[key] = self.beta1*self.m[key] + (1-self.beta1)*grads[key]
+            #self.v[key] = self.beta2*self.v[key] + (1-self.beta2)*(grads[key]**2)
+            #print('param:::::',self.ms[str(cnt)])
+            self.ms[str(cnt)] += (1 - self.beta1) * (grads[cnt] - self.ms[str(cnt)])
+            self.vs[str(cnt)] += (1 - self.beta2) * (grads[cnt]**2 - self.vs[str(cnt)])
+            params[cnt] -= lr_t * self.ms[str(cnt)] / (np.sqrt(self.vs[str(cnt)]) + 1e-7)
+
+            #unbias_m += (1 - self.beta1) * (grads[key] - self.m[key]) # correct bias
+            #unbisa_b += (1 - self.beta2) * (grads[key]*grads[key] - self.v[key]) # correct bias
+            #params[key] += self.lr * unbias_m / (np.sqrt(unbisa_b) + 1e-7)
+            cnt += 1
 
     def update_one(self, param):
         xp = cuda.get_array_module(param.data)
